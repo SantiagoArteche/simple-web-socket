@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>
+      WebSocket -
+      <span class="status" style="text-transform: capitalize"></span>
+    </h1>
+
+    <form method="POST">
+      <input type="text" placeholder="Send message" />
+      <button>Enviar</button>
+    </form>
+
+    <ul id="message"></ul>
+
+    <script>
+      const form = document.querySelector("form");
+      const input = document.querySelector("input");
+      const ul = document.querySelector("ul");
+      let status = document.querySelector(".status");
+      let socket;
+
+      function sendMessage(msg) {
+        if (msg.length <= 0) return;
+
+        socket?.send(`${msg}`);
+      }
+
+      function renderMessage(msg) {
+        if (msg.length <= 0) return;
+        const li = document.createElement("li");
+        li.innerHTML = `${msg}`;
+        ul.prepend(li);
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const message = input.value;
+        sendMessage(message);
+        input.value = "";
+      });
+
+      function connectToServer() {
+        socket = new WebSocket("ws://localhost:8081");
+
+        socket.onopen = (event) => {
+          console.log("Connected");
+          status.innerHTML = "online";
+        };
+
+        socket.onclose = (event) => {
+          console.log("Disconected");
+          status.innerHTML = "offline";
+          setTimeout(() => {
+            connectToServer();
+          }, 1500);
+        };
+
+        socket.onmessage = (event) => {
+          renderMessage(event.data);
+        };
+      }
+
+      connectToServer();
+    </script>
+  </body>
+</html>
